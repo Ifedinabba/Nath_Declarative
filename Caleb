@@ -1,0 +1,75 @@
+pipeline{
+  agent {
+    label 'master'
+  } 
+  tools {
+    maven 'maven_3.9.1'
+  }
+  //options{}
+  //triggers{}
+  stages {
+    stage('1Clone'){
+      steps{
+        sh "echo 'cloning the latest application version' "
+      git credentialsId: '2f0175d7-f2df-4763-bf79-947d11b1f501', url: 'https://github.com/Landmarkhaniel/jenkins-amazon'
+        sh "echo 'latest application version available for testing and build' "
+      }
+    }
+    stage('2TestBuild'){
+      steps{
+        sh "echo 'running JUnit-test-cases' "
+        sh "echo 'testing must passed to create artifacts ' "
+        sh "mvn clean package" 
+      }
+    }
+  stage('3CodeQualityAnalysis') {
+    steps{
+        sh "echo setup sonarQube authentication"
+        sh "echo 'Perfoming CodeQualityAnalysis' "
+        sh "mvn sonar:sonar"      
+    }
+   }
+   stage('4UploadArtifacts') {
+    steps{
+      sh "echo configure nexus authentication"
+      sh "mvn deploy"
+      sh "echo artifacts uploaded"
+    }
+   }
+   stage('5deploy') {
+    steps{
+     deploy adapters: [tomcat9(credentialsId: 'tomcat', path: '', url: 'http://http://52.56.178.92:8090/')], contextPath: '/Pipeline_Test_Job', onFailure: false, war: 'target/*.war'
+    }
+   }
+   
+   //stage('5deploy') {}
+  }
+post{ 
+    always{
+emailext body: '''Great job team
+
+Sizamtek''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build Successful', to: 'ifediohiaeri@gmail.com, fedyman2016@gmail.com'
+
+    }
+    success{
+emailext body: '''Great job team
+
+Sizamtek''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build Successful', to: 'ifediohiaeri@gmail.com, fedyman2016@gmail.com'
+
+    }
+    failure{
+emailext body: '''Kindly review ASAP.
+
+Sizamtek''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build Failure', to: 'ifediohiaeri@gmail.com, fedyman2016@gmail.com'
+
+    }
+    
+}
+
+}
+*/
+
+        }
+   }
+  }
+}
