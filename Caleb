@@ -67,7 +67,6 @@ Sizamtek''', recipientProviders: [buildUser(), developers(), contributor()], sub
 }
 
 }
-*/
 
         }
    }
